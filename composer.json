@@ -1,0 +1,21 @@
+{
+    "name": "robertboeser/robo-id",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Robert Böser",
+            "email": "code@robertboeser.de"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^8.0",
+        "skleeschulte/base32": "^0.0.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Robo\\RoboID\\": "src/"
+        }
+    }
+}
