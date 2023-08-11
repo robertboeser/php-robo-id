@@ -13,10 +13,23 @@ class RoboB32 extends RoboJSON {
         $time = Base32::encodeByteStrToCrockford(hex2bin($time));
         $time = substr($time, -9);                              // use last 9 chars
 
-        $rand = $this->rand;
-        if(!$this->long) $rand = substr($rand, -4); // use last four bytes in short version
         $rand = Base32::encodeByteStrToCrockford(hex2bin($this->rand));
-        $rand = substr($rand, 0, $this->long ? 16 : 6);
+
+        switch($this->type) {
+            case 'L':
+                $rand = substr($rand, 0, 16);
+            break;
+            case 'X':
+                $rand = substr($rand, 0, 16);
+                $xrnd = Base32::encodeByteStrToCrockford(hex2bin($this->xrnd));
+                $xrnd = substr($xrnd, 0, 16);
+                $rand .= '-'.$xrnd;
+            break;
+            case 'S':
+            default:
+                $rand = substr($rand, 0, 6);
+            break;
+        }
 
         return "$time-$rand";
     }
@@ -25,16 +38,22 @@ class RoboB32 extends RoboJSON {
     * parse id from the specific format
     */
     function parse($id) {
-        list($time, $rand) = explode('-', $id, 2);
+        list($time, $rand, $xrnd) = explode('-', "$id--", 3);
         $time = str_pad($time, 16, '0', STR_PAD_LEFT);          // pad to 80 bit b32
         $time = bin2hex(Base32::decodeCrockfordToByteStr($time));
         $time = substr($time, -16);                             // use last 16 chars
 
         $rand = bin2hex(Base32::decodeCrockfordToByteStr($rand));
-        $long = (strlen($rand) < 16);
+        $xrnd = bin2hex(Base32::decodeCrockfordToByteStr(trim($xrnd, '-')));
+
+        $type = 'S';
+        if(strlen($rand) > 6) $type = 'L';
+        if($xrnd) $type = 'X';
+
         $this->setRand($rand);
+        $this->setXRnd($xrnd);
         $this->setTime($time);
-        $this->long = $long;
+        $this->setType($type);
     }
 
 }

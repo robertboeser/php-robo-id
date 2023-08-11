@@ -11,14 +11,16 @@ There are three different string representations and one as json.
 Every implementation needs to accept and export the json representation.
 
 ### HEX
-TTTTTTTTTTTT-RRRRRRRR
-TTTTTTTTTTTT-RRRRRRRRRRRRRRRRRRRR
+S: TTTTTTTTTTTT-RRRRRRRR
+L: TTTTTTTTTTTT-RRRRRRRRRRRRRRRRRRRR
+X: TTTTTTTTTTTT-RRRRRRRRRRRRRRRRRRRR-XXXXXXXXXXXXXXXXXXXX
 The time based part is left padded with zeros to 48 bits.
 The random part is right padded with zeros to 32 or 80 bits.
 
 ### Base32
-TTTTTTTTT-RRRRRR
-TTTTTTTTT-RRRRRRRRRRRRRRRR
+S: TTTTTTTTT-RRRRRR
+L: TTTTTTTTT-RRRRRRRRRRRRRRRR
+X: TTTTTTTTT-RRRRRRRRRRRRRRRR-XXXXXXXXXXXXXXXX
 The time based and the random part are encoded using base32 crockford charset.
 No padding is necessary using this representation
 
@@ -31,8 +33,8 @@ In short version C and D are filled with zeros. The random part is encoded in E,
 
 ### JSON
 {
-  "e": "hex|b32|b64",     // encoding
-  "v": "S|L",             // version
-  "t": "time based part",
-  "r": "random part"
+  "v": "S|L|X",           // version
+  "t": "time based part", // hex encoded
+  "r": "random part",     // hex encoded
+  "x": "extended part"    // hex encoded
 }

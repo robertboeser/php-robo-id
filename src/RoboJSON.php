@@ -4,7 +4,10 @@ namespace Robo\RoboID;
 class RoboJSON {
     protected $time;        // hex string // 16 hex characters
     protected $rand;        // hex string // 20 hex characters
-    protected $long = false; // short => last 32 bits of $rand
+    protected $xrnd;
+    protected $type = 'S';  // S => last 32 bits of $rand
+                            // L => last 80 bits of $rand
+                            // X => append $xrnd to long
 
     /*
     * create new id by setting $timed and $random
@@ -12,44 +15,61 @@ class RoboJSON {
     function init() {
         $time = floor(microtime(true) * 1000);
         $this->time = bin2hex(pack('J', $time));
-        $rand = random_bytes(10); // 80 bits entropy
-        $rand = bin2hex($rand);
+        $rand = bin2hex(random_bytes(10)); // 80 bits entropy
+        $xrnd = bin2hex(random_bytes(10)); // 80 bits entropy
         $this->rand = $this->setUuidBits($rand);
+        $this->xrnd = $xrnd;
+    }
+
+    /*
+    * create an associative array
+    */
+    function jsonSerialize() {
+        return [
+            'v' => $this->type,
+            't' => $this->time,
+            'r' => $this->rand,
+            'x' => $this->xrnd,
+        ];
+    }
+
+    /*
+    * set properties from an array or object
+    */
+    function jsonUnserialize($json) {
+        if(is_array($json)) {
+            $this->setType($json['v']);
+            $this->setTime($json['t']);
+            $this->setRand($json['r']);
+            $this->setXRnd($json['x'] ?? '');
+        }
+        if(is_object($json)) {
+            $this->setType($json->v);
+            $this->setTime($json->t);
+            $this->setRand($json->r);
+            $this->setXRnd($json->x ?? '');
+        }
     }
 
     /*
     * export id as json
     */
-    function export($encoding='hex') {
-        $time = $this->time;
-        $rand = $this->rand;
-
-        // apply encoding
-        // TODO: implement B32 and UUID support
-        $encoding = 'hex';
-
-        $json = [
-            'e' => $encoding,
-            'v' => $this->long ? 'L' : 'S',
-            't' => $time,
-            'r' => $rand,
-        ];
-        return json_encode($json);
+    function export() {
+        return json_encode($this->jsonSerialize());
     }
 
     /*
     * import id from json
     */
-    function import($json) {
-        $json = json_decode($json);
-        // TODO: implement B32 and UUID support
-        $rand = $json->r;
-        $time = $json->t;
-        $long = ($json->v !== 'S');
+    function import($str) {
+        $this->jsonUnserialize(json_decode($str));
+    }
 
-        $this->setTime($time);
-        $this->setRand($rand);
-        $this->long = $long;
+    /*
+    * parse is an alias of import
+    */
+    function parse($id) {
+        $this->import($id);
     }
 
     /*
@@ -57,13 +77,6 @@ class RoboJSON {
     */
     function format() {
         return $this->export();
-    }
-
-    /*
-    * parse id from the specific format
-    */
-    function parse($id) {
-        $this->import($id);
     }
 
     /*
@@ -75,10 +88,15 @@ class RoboJSON {
     }
 
     /*
-    * enable long version
+    * set version type
     */
-    function setLong($bool) {
-        $this->long = (bool) $bool;
+    function setType($val) {
+        $val = strtoupper($val);
+        if(in_array($val, ['S', 'L', 'X'])) {
+            $this->type = $val;
+        } else {
+            $this->type = 'S';
+        }
     }
 
     /* ********** helper functions ********** */
@@ -101,6 +119,13 @@ class RoboJSON {
         $rand = str_pad($hex, 20, '0', STR_PAD_LEFT); // pad to 80 bit hex
         $rand = $this->setUuidBits($rand);
         $this->rand = $rand;
+        return $rand;
+    }
+
+    protected function setXRnd($hex) {
+        if(!$hex) $hex = '';
+        $rand = str_pad($hex, 20, '0', STR_PAD_LEFT); // pad to 80 bit hex
+        $this->xrnd = $rand;
         return $rand;
     }
 }

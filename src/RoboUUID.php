@@ -13,7 +13,7 @@ class RoboUUID extends RoboJSON{
         $time = bin2hex($time);
 
         $rand = $this->rand;
-        if(!$this->long) {
+        if($this->type === 'S') {
             $rand = hex2bin($rand);
             // use last four bytes in short version
             // remove last two bits to get 30 bits entropy
@@ -42,7 +42,8 @@ class RoboUUID extends RoboJSON{
         $time = bin2hex($time);
 
         $this->setTime($time);
+        $this->setXRnd('');
         $rand = $this->setRand($rand);
-        $this->long = (substr($rand, 1, 3) !== '000' || substr($rand, 5, 3) !== '000' || substr($rand, 8, 4) !== '0000');
+        $this->type = (substr($rand, 1, 3) !== '000' || substr($rand, 5, 3) !== '000' || substr($rand, 8, 4) !== '0000') ? 'L' : 'S';
     }
 }
