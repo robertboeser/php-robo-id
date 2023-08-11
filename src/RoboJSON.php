@@ -111,7 +111,7 @@ class RoboJSON {
 
     protected function setTime($hex) {
         $time = str_pad($hex, 16, '0', STR_PAD_LEFT);
-        $this->time - $time;
+        $this->time = $time;
         return $time;
     }
 
