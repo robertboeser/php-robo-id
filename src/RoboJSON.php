@@ -15,10 +15,8 @@ class RoboJSON {
     function init() {
         $time = floor(microtime(true) * 1000);
         $this->time = bin2hex(pack('J', $time));
-        $rand = bin2hex(random_bytes(10)); // 80 bits entropy
-        $xrnd = bin2hex(random_bytes(10)); // 80 bits entropy
-        $this->rand = $this->setUuidBits($rand);
-        $this->xrnd = $xrnd;
+        $this->rand = bin2hex(random_bytes(10)); // 80 bits entropy
+        $this->xrnd = bin2hex(random_bytes(10)); // 80 bits entropy
     }
 
     /*
@@ -101,14 +99,6 @@ class RoboJSON {
 
     /* ********** helper functions ********** */
 
-    protected function setUuidBits($hex) {
-        // $bin holds the 80 least significant bits of the UUID
-        $bin = hex2bin($hex);
-        $bin[0] = chr((ord($bin[0]) & 0x0F) | 0xB0);  // uuid version
-        $bin[2] = chr((ord($bin[2]) & 0x3F) | 0x80);  // uuid variant
-        return bin2hex($bin);
-    }
-
     protected function setTime($hex) {
         $time = str_pad($hex, 16, '0', STR_PAD_LEFT);
         $this->time = $time;
@@ -117,7 +107,6 @@ class RoboJSON {
 
     protected function setRand($hex) {
         $rand = str_pad($hex, 20, '0', STR_PAD_LEFT); // pad to 80 bit hex
-        $rand = $this->setUuidBits($rand);
         $this->rand = $rand;
         return $rand;
     }

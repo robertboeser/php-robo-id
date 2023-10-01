@@ -46,4 +46,14 @@ class RoboUUID extends RoboJSON{
         $rand = $this->setRand($rand);
         $this->type = (substr($rand, 1, 3) !== '000' || substr($rand, 5, 3) !== '000' || substr($rand, 8, 4) !== '0000') ? 'L' : 'S';
     }
+
+    /* ********** helper functions ********** */
+
+    protected function setUuidBits($hex) {
+        // $bin holds the 80 least significant bits of the UUID
+        $bin = hex2bin($hex);
+        $bin[0] = chr((ord($bin[0]) & 0x0F) | 0xB0);  // uuid version
+        $bin[2] = chr((ord($bin[2]) & 0x3F) | 0x80);  // uuid variant
+        return bin2hex($bin);
+    }
 }
